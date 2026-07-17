@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { TODO_STATUS, type TodoStatusType } from '../enum/todo.enum';
 
 @Entity('todos')
 export class Todo {
@@ -21,10 +22,11 @@ export class Todo {
   description: string;
 
   @Column({
-    enum: ['PENDING', 'COMPLETED'],
-    default: 'PENDING',
+    type: 'enum',
+    enum: Object.values(TODO_STATUS),
+    default: TODO_STATUS.PENDING,
   })
-  status: 'PENDING' | 'COMPLETED';
+  status: TodoStatusType;
 
   @CreateDateColumn()
   createdAt: Date;
