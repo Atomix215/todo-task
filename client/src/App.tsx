@@ -1,5 +1,7 @@
+import AppRoutes from './shared/router/AppRoutes';
+
 function App() {
-  return <div className='bg-amber-700'>Hello World</div>;
+  return <AppRoutes />;
 }
 
 export default App;
