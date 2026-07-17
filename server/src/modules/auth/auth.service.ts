@@ -3,12 +3,12 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { SignupDTO } from './dto/signup.dto';
+import { SignupReqDTO } from './dto/signup.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entities';
 import * as bcrypt from 'bcrypt';
-import { LoginDTO } from './dto/login.dto';
+import { LoginReqDTO } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signUp(singUpPayload: SignupDTO): Promise<{
+  async signUp(singUpPayload: SignupReqDTO): Promise<{
     message: string;
   }> {
     console.log('🚀 ~ AuthService ~ signUp ~ singUpPayload:', singUpPayload);
@@ -43,7 +43,7 @@ export class AuthService {
     };
   }
 
-  async login(loginPayload: LoginDTO): Promise<{
+  async login(loginPayload: LoginReqDTO): Promise<{
     token: string;
   }> {
     console.log('🚀 ~ AuthService ~ login ~ loginPayload:', loginPayload);
