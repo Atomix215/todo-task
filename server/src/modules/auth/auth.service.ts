@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entities';
 import * as bcrypt from 'bcrypt';
-import { LoginReqDTO } from './dto/login.dto';
+import { LoginReqDTO, LoginResDTO } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -43,9 +43,7 @@ export class AuthService {
     };
   }
 
-  async login(loginPayload: LoginReqDTO): Promise<{
-    token: string;
-  }> {
+  async login(loginPayload: LoginReqDTO): Promise<LoginResDTO> {
     console.log('🚀 ~ AuthService ~ login ~ loginPayload:', loginPayload);
 
     const user = await this.userRepository.findOne({
@@ -75,6 +73,11 @@ export class AuthService {
 
     return {
       token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
     };
   }
 }

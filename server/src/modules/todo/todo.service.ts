@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Todo } from './entities/todo.entities';
 import { Repository } from 'typeorm';
 import { CreateTodoReqDTO } from './dto/create-todo.dto';
+import { UpdateTodoReqDTO } from './dto/update-todo.dto';
+import { GetAllTodoQueryDTO, GetAllTodoResDTO } from './dto/get-todo.dto';
 
 @Injectable()
 export class TodoService {
@@ -11,8 +13,57 @@ export class TodoService {
     private readonly todoRepository: Repository<Todo>,
   ) {}
 
-  async getAllTodos(): Promise<Todo[]> {
-    return this.todoRepository.find();
+  async getAllTodos(
+    getAllTodoQuery: GetAllTodoQueryDTO,
+  ): Promise<GetAllTodoResDTO> {
+    const { search, status, limit, page } = getAllTodoQuery;
+
+    const query = this.todoRepository.createQueryBuilder('todo');
+
+    if (search) {
+      query.andWhere(
+        '(todo.title ILIKE :search OR todo.description ILIKE :search)',
+        {
+          search: `%${search}%`,
+        },
+      );
+    }
+
+    if (status) {
+      query.andWhere('todo.status = :status', {
+        status,
+      });
+    }
+
+    const skip = (page - 1) * limit;
+
+    query.skip(skip).take(limit);
+
+    const [data, total] = await query.getManyAndCount();
+
+    return {
+      data,
+      meta: {
+        totalItems: total,
+        itemsPerPage: limit,
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getOneTodo(todoId: string): Promise<Todo> {
+    const todo = await this.todoRepository.findOne({
+      where: {
+        id: todoId,
+      },
+    });
+
+    if (!todo) {
+      throw new NotFoundException('No Todo Found');
+    }
+
+    return todo;
   }
 
   async createTodo(
@@ -33,15 +84,34 @@ export class TodoService {
     return await this.todoRepository.save(todo);
   }
 
-  async deleteTodo(userId: string) {
-    const user = await this.todoRepository.findOne({
-      where: { id: userId },
+  async updateTodo(
+    todoId: string,
+    updateTodoPayload: UpdateTodoReqDTO,
+  ): Promise<any> {
+    const todo = await this.todoRepository.findOne({
+      where: {
+        id: todoId,
+      },
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+    if (!todo) {
+      throw new NotFoundException('Todo not found');
     }
 
-    return this.todoRepository.remove(user);
+    const updatedTodo = this.todoRepository.merge(todo, updateTodoPayload);
+
+    return await this.todoRepository.save(updatedTodo);
+  }
+
+  async deleteTodo(todoId: string) {
+    const todo = await this.todoRepository.findOne({
+      where: { id: todoId },
+    });
+
+    if (!todo) {
+      throw new NotFoundException('Todo not found');
+    }
+
+    return this.todoRepository.remove(todo);
   }
 }

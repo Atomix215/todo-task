@@ -5,6 +5,8 @@ import {
   Get,
   Param,
   Post,
+  Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -13,6 +15,8 @@ import { Todo } from './entities/todo.entities';
 import { CreateTodoReqDTO } from './dto/create-todo.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { type Request } from 'express';
+import { UpdateTodoReqDTO } from './dto/update-todo.dto';
+import { GetAllTodoQueryDTO, GetAllTodoResDTO } from './dto/get-todo.dto';
 
 @Controller('todos')
 @UseGuards(JwtAuthGuard)
@@ -20,8 +24,15 @@ export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
   @Get()
-  async getAllTodos(@Req() req: Request): Promise<Todo[]> {
-    return this.todoService.getAllTodos();
+  async getAllTodos(
+    @Query() getAllTodoQuery: GetAllTodoQueryDTO,
+  ): Promise<GetAllTodoResDTO> {
+    return this.todoService.getAllTodos(getAllTodoQuery);
+  }
+
+  @Get(':id')
+  async getOneTodo(@Param('id') todoId: string) {
+    return this.todoService.getOneTodo(todoId);
   }
 
   @Post()
@@ -34,8 +45,16 @@ export class TodoController {
     return this.todoService.createTodo(createTodoPayload, userId);
   }
 
+  @Put(':id')
+  async updateTodo(
+    @Param('id') todoId: string,
+    @Body() updateTodoPayload: UpdateTodoReqDTO,
+  ): Promise<any> {
+    return this.todoService.updateTodo(todoId, updateTodoPayload);
+  }
+
   @Delete(':id')
-  async deleteTodo(@Param() userId: string) {
-    return this.todoService.deleteTodo(userId);
+  async deleteTodo(@Param('id') todoId: string) {
+    return this.todoService.deleteTodo(todoId);
   }
 }
